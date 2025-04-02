@@ -12,10 +12,10 @@ os.environ['TK_LIBRARY'] = r"C:\Users\buvan\AppData\Local\Programs\Python\Python
 # ------------------- Database Connection -------------------
 def connect_db():
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="new_password",
-        database="supermarket_management"
+        host="141.209.241.57",
+        user="kshat1m",
+        password="mypass",  # Your actual database password
+        database="BIS698W1700_GRP2"
     )
 
 # ------------------- Password Hashing -------------------
@@ -88,61 +88,72 @@ main_frame.place(relx=0.5, rely=0.5, anchor="center", relwidth=0.95, relheight=0
 left_frame = ctk.CTkFrame(main_frame, fg_color="white", corner_radius=0)
 left_frame.place(relx=0, rely=0, relwidth=0.5, relheight=1)
 
+# Create a form container for better alignment
+form_container = ctk.CTkFrame(left_frame, fg_color="transparent")
+form_container.place(relx=0.5, rely=0.5, anchor="center", relwidth=0.8, relheight=0.8)
+
 # SuperMarket Title
-title_label = ctk.CTkLabel(left_frame, text="SuperMarket", 
+title_label = ctk.CTkLabel(form_container, text="SuperMarket", 
                           font=("Arial", 28, "bold"), text_color="#2563eb")
-title_label.place(relx=0.1, rely=0.1)
+title_label.pack(anchor="w", pady=(0, 5))
 
 # Subtitle
-subtitle_label = ctk.CTkLabel(left_frame, text="Manage your shopping experience\nseamlessly.", 
+subtitle_label = ctk.CTkLabel(form_container, text="Manage your shopping experience seamlessly.", 
                              font=("Arial", 14), text_color="gray")
-subtitle_label.place(relx=0.1, rely=0.17)
+subtitle_label.pack(anchor="w", pady=(0, 30))
 
 # Login Details Header
-login_header = ctk.CTkLabel(left_frame, text="Enter your login details", 
+login_header = ctk.CTkLabel(form_container, text="Enter your login details", 
                            font=("Arial", 18, "bold"), text_color="black")
-login_header.place(relx=0.1, rely=0.3)
+login_header.pack(anchor="w", pady=(0, 5))
 
 # Login Instruction
-login_instruction = ctk.CTkLabel(left_frame, text="Enter the registered credentials used\nwhile signing up", 
+login_instruction = ctk.CTkLabel(form_container, text="Enter the registered credentials used while signing up", 
                                font=("Arial", 14), text_color="gray")
-login_instruction.place(relx=0.1, rely=0.37)
+login_instruction.pack(anchor="w", pady=(0, 30))
 
 # Username Label
-username_label = ctk.CTkLabel(left_frame, text="Username", font=("Arial", 14), text_color="gray")
-username_label.place(relx=0.1, rely=0.48)
+username_label = ctk.CTkLabel(form_container, text="Username", font=("Arial", 14), text_color="gray")
+username_label.pack(anchor="w", pady=(0, 5))
 
 # Username Entry
-username_entry = ctk.CTkEntry(left_frame, font=("Arial", 14), height=40, width=350, 
+username_entry = ctk.CTkEntry(form_container, font=("Arial", 14), height=40, 
                              border_color="#e5e7eb", border_width=1, corner_radius=5)
-username_entry.place(relx=0.1, rely=0.53)
+username_entry.pack(fill="x", pady=(0, 15))
 
 # Password Label
-password_label = ctk.CTkLabel(left_frame, text="Password", font=("Arial", 14), text_color="gray")
-password_label.place(relx=0.1, rely=0.61)
+password_label = ctk.CTkLabel(form_container, text="Password", font=("Arial", 14), text_color="gray")
+password_label.pack(anchor="w", pady=(0, 5))
 
 # Password Entry
-password_entry = ctk.CTkEntry(left_frame, font=("Arial", 14), height=40, width=350, 
+password_entry = ctk.CTkEntry(form_container, font=("Arial", 14), height=40, 
                              border_color="#e5e7eb", border_width=1, corner_radius=5, show="*")
-password_entry.place(relx=0.1, rely=0.66)
+password_entry.pack(fill="x", pady=(0, 20))
 
 # Login Button
-login_btn = ctk.CTkButton(left_frame, text="Login", font=("Arial", 14, "bold"), 
+login_btn = ctk.CTkButton(form_container, text="Login", font=("Arial", 14, "bold"), 
                          fg_color="#2563eb", hover_color="#1d4ed8",
-                         height=40, width=350, corner_radius=5, command=login_user)
-login_btn.place(relx=0.1, rely=0.76)
+                         height=40, corner_radius=5, command=login_user)
+login_btn.pack(fill="x", pady=(10, 20))
 
 # Sign Up Text
-signup_label = ctk.CTkLabel(left_frame, text="Already have an account? Sign Up", 
-                           font=("Arial", 14), text_color="#2563eb", cursor="hand2")
-signup_label.place(relx=0.1, rely=0.84)
-signup_label.bind("<Button-1>", lambda e: open_signup())
+signup_frame = ctk.CTkFrame(form_container, fg_color="transparent")
+signup_frame.pack(fill="x", pady=(10, 0))
 
-# Forgot Password
-forgot_pwd_label = ctk.CTkLabel(left_frame, text="Forgot Password?", 
-                              font=("Arial", 14), text_color="#2563eb", cursor="hand2")
-forgot_pwd_label.place(relx=0.1, rely=0.89)
-forgot_pwd_label.bind("<Button-1>", lambda e: open_forgot_password())
+signup_label = ctk.CTkLabel(signup_frame, text="Don't have an account?", 
+                           font=("Arial", 14), text_color="gray")
+signup_label.pack(side="left", padx=(0, 5))
+
+signup_link = ctk.CTkLabel(signup_frame, text="Sign Up", 
+                          font=("Arial", 14, "bold"), text_color="#2563eb", cursor="hand2")
+signup_link.pack(side="left")
+signup_link.bind("<Button-1>", lambda e: open_signup())
+
+# # Forgot Password (commented out but properly aligned)
+# forgot_pwd_label = ctk.CTkLabel(form_container, text="Forgot Password?", 
+#                              font=("Arial", 14), text_color="#2563eb", cursor="hand2")
+# forgot_pwd_label.pack(anchor="w", pady=(5, 0))
+# forgot_pwd_label.bind("<Button-1>", lambda e: open_forgot_password())
 
 # ---------------- Right Side (Image) ----------------
 right_frame = ctk.CTkFrame(main_frame, fg_color="#EBF3FF", corner_radius=0)
@@ -152,21 +163,30 @@ right_frame.place(relx=0.5, rely=0, relwidth=0.5, relheight=1)
 image_container = ctk.CTkFrame(right_frame, fg_color="#EBF3FF", corner_radius=5, width=252, height=252)
 image_container.place(relx=0.5, rely=0.5, anchor="center")
 
-# Load and display the shopping cart image
-image_path = "shopping.png"
+# Load and display the shopping cart image with transparency
+image_path = "./images/shopping.png"
 try:
-    img = ctk.CTkImage(light_image=Image.open(image_path), size=(252, 252))
-    image_label = ctk.CTkLabel(image_container, image=img, text="")
-    image_label.pack(fill="both", expand=True)
+    # Create the CTkImage with transparency support
+    img = ctk.CTkImage(light_image=Image.open(image_path), 
+                       dark_image=Image.open(image_path),
+                       size=(252, 252))
     
-    # Size indicators (optional)
-    size_label = ctk.CTkLabel(right_frame, text="252 × 252", font=("Arial", 10), text_color="gray")
-    size_label.place(relx=0.5, rely=0.73, anchor="center")
+    # Create a label with transparent background
+    image_label = ctk.CTkLabel(image_container, image=img, text="", bg_color="transparent")
+    image_label.pack(fill="both", expand=True)
     
 except Exception as e:
     print(f"Error loading image: {e}")
     error_label = ctk.CTkLabel(image_container, text="🛒", font=("Arial", 72), text_color="#2563eb")
     error_label.pack(pady=50)
+
+# Center the window on the screen
+root.update_idletasks()
+width = root.winfo_width()
+height = root.winfo_height()
+x = (root.winfo_screenwidth() // 2) - (width // 2)
+y = (root.winfo_screenheight() // 2) - (height // 2)
+root.geometry('{}x{}+{}+{}'.format(width, height, x, y))
 
 # ---------------- Run Application ----------------
 root.mainloop()

@@ -13,12 +13,12 @@ os.environ['TK_LIBRARY'] = r"C:\Users\buvan\AppData\Local\Programs\Python\Python
 
 # ------------------- Database Configuration -------------------
 DB_CONFIG = {
-    "host": "localhost",
-    "user": "root",
-    "password": "new_password",  # Update with your MySQL password
+    "host": "141.209.241.57",
+    "user": "kshat1m",
+    "password": "mypass",  # Update with your MySQL password
 }
 
-DB_NAME = "supermarket_management"
+DB_NAME = "BIS698W1700_GRP2"
 
 # ------------------- Database Setup Functions -------------------
 def connect_db(database=None):
@@ -65,7 +65,6 @@ def setup_database():
             first_name VARCHAR(50) NOT NULL,
             last_name VARCHAR(50) NOT NULL,
             username VARCHAR(50) UNIQUE NOT NULL,
-            email VARCHAR(100) UNIQUE NOT NULL,
             password VARCHAR(255) NOT NULL,
             role VARCHAR(20) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

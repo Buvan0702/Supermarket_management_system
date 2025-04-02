@@ -10,6 +10,9 @@ import sys
 os.environ['TCL_LIBRARY'] = r"C:\Users\buvan\AppData\Local\Programs\Python\Python39\tcl\tcl8.6"
 os.environ['TK_LIBRARY'] = r"C:\Users\buvan\AppData\Local\Programs\Python\Python39\tcl\tk8.6"
 
+# Define the default image directory
+DEFAULT_IMAGE_DIR = "./images"
+
 # Global variable to store current user info
 current_user = {
     "user_id": None,
@@ -46,10 +49,10 @@ def read_login_file():
 # ------------------- Database Connection -------------------
 def connect_db():
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="new_password",  # Update with your MySQL password
-        database="supermarket_management"
+        host="141.209.241.57",
+            user="kshat1m",
+            password="mypass",  # Your actual database password
+            database="BIS698W1700_GRP2"
     )
 
 # ------------------- User Authentication Functions -------------------
@@ -687,26 +690,65 @@ else:
         inner_card = ctk.CTkFrame(item_card, fg_color="white", corner_radius=10)
         inner_card.pack(padx=20, pady=20, fill="both", expand=True)
         
-        # Try to load image
+        # Try to load image with updated path handling
         try:
-            if product["image"] and os.path.exists(product["image"]):
-                img = ctk.CTkImage(light_image=Image.open(product["image"]), size=(150, 150))
+            # Check if product has image path from database
+            db_image_path = product["image"]
+            
+            # First try with the database path
+            if db_image_path and os.path.exists(db_image_path):
+                img = ctk.CTkImage(light_image=Image.open(db_image_path), size=(150, 150))
                 img_label = ctk.CTkLabel(inner_card, image=img, text="")
                 img_label.pack(pady=10)
             else:
-                # Use emoji based on product name
-                emoji = "🍎"  # default
-                if "apple" in product["name"].lower():
-                    emoji = "🍎"
-                elif "banana" in product["name"].lower():
-                    emoji = "🍌"
-                elif "broccoli" in product["name"].lower():
-                    emoji = "🥦"
+                # If database path doesn't work, try with default image directory
+                product_name = product["name"].lower().replace(" ", "_")
+                default_image_options = [
+                    f"{DEFAULT_IMAGE_DIR}/{product_name}.png",
+                    f"{DEFAULT_IMAGE_DIR}/{product_name}.jpg",
+                    f"{DEFAULT_IMAGE_DIR}/{product_name}.jpeg"
+                ]
                 
-                ctk.CTkLabel(inner_card, text=emoji, font=("Arial", 72)).pack(pady=10)
+                image_found = False
+                for img_path in default_image_options:
+                    if os.path.exists(img_path):
+                        img = ctk.CTkImage(light_image=Image.open(img_path), size=(150, 150))
+                        img_label = ctk.CTkLabel(inner_card, image=img, text="")
+                        img_label.pack(pady=10)
+                        image_found = True
+                        break
+                
+                # If no image is found, use emoji
+                if not image_found:
+                    # Use emoji based on product name
+                    emoji = "🛒"  # default shopping cart
+                    if "apple" in product["name"].lower():
+                        emoji = "🍎"
+                    elif "banana" in product["name"].lower():
+                        emoji = "🍌"
+                    elif "broccoli" in product["name"].lower():
+                        emoji = "🥦"
+                    elif "milk" in product["name"].lower():
+                        emoji = "🥛"
+                    elif "bread" in product["name"].lower():
+                        emoji = "🍞"
+                    elif "egg" in product["name"].lower():
+                        emoji = "🥚"
+                    elif "fish" in product["name"].lower():
+                        emoji = "🐟"
+                    elif "meat" in product["name"].lower() or "beef" in product["name"].lower():
+                        emoji = "🥩"
+                    elif "chicken" in product["name"].lower():
+                        emoji = "🍗"
+                    
+                    # Create an emoji label with transparent background
+                    emoji_label = ctk.CTkLabel(inner_card, text=emoji, font=("Arial", 72), fg_color="transparent")
+                    emoji_label.pack(pady=10)
+                    
         except Exception as e:
             print(f"Error loading image for {product['name']}: {e}")
-            ctk.CTkLabel(inner_card, text="🍎", font=("Arial", 72)).pack(pady=10)
+            emoji_label = ctk.CTkLabel(inner_card, text="🛒", font=("Arial", 72), fg_color="transparent")
+            emoji_label.pack(pady=10)
         
         # Product details
         ctk.CTkLabel(inner_card, text=product["name"], 
@@ -742,38 +784,3 @@ cart_container.pack(fill="x", pady=(0, 10))
 cart_items = {}
 cart_item_frames = {}
 
-# Label when cart is empty
-empty_cart_label = ctk.CTkLabel(cart_container, text="Your cart is empty", 
-                              font=("Arial", 14), text_color="gray")
-empty_cart_label.pack(pady=20)
-
-# Cart total label
-total_label = ctk.CTkLabel(checkout_section, text="Total: $0.00", 
-                         font=("Arial", 16, "bold"), text_color="black")
-total_label.pack(anchor="e", padx=20, pady=(0, 10))
-
-# Checkout button
-checkout_btn = ctk.CTkButton(checkout_section, text="Proceed to Checkout", 
-                            fg_color="#16a34a", hover_color="#15803d", 
-                            font=("Arial", 14), height=35, width=200,
-                            state="disabled", command=proceed_to_checkout)
-checkout_btn.pack(anchor="w", pady=(0, 10))
-
-# ---------------- Previous Orders Section ----------------
-orders_section = ctk.CTkFrame(content_frame, fg_color="white")
-orders_section.pack(fill="x", padx=30, pady=(10, 30))
-
-orders_label = ctk.CTkLabel(orders_section, text="Previous Orders", 
-                           font=("Arial", 18, "bold"), text_color="black")
-orders_label.pack(anchor="w", pady=(10, 15))
-
-# Orders container
-orders_container = ctk.CTkFrame(orders_section, fg_color="#f3f4f6", corner_radius=15)
-orders_container.pack(fill="x", pady=5)
-
-# Fetch user's cart and orders on startup
-fetch_user_cart()
-refresh_previous_orders()
-
-# ---------------- Run Application ----------------
-app.mainloop()

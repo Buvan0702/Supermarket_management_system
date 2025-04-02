@@ -12,10 +12,10 @@ os.environ['TK_LIBRARY'] = r"C:\Users\buvan\AppData\Local\Programs\Python\Python
 # ------------------- Database Connection -------------------
 def connect_db():
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="new_password",  # Update with your MySQL password
-        database="supermarket_management"
+        host="141.209.241.57",
+        user="kshat1m",
+        password="mypass",  # Your actual database password
+        database="BIS698W1700_GRP2"
     )
 
 # ------------------- Password Hashing -------------------
@@ -88,47 +88,64 @@ ctk.set_default_color_theme("blue")
 
 root = ctk.CTk()
 root.title("SuperMarket - Admin Login")
-root.geometry("500x400")  
+root.geometry("600x600")  
 root.resizable(False, False)
 
 # ---------------- Main Frame ----------------
 main_frame = ctk.CTkFrame(root, fg_color="white", corner_radius=10)
 main_frame.place(relx=0.5, rely=0.5, anchor="center", relwidth=0.9, relheight=0.9)
 
+# Create form container for better alignment
+form_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+form_frame.pack(fill="both", expand=True, padx=50, pady=(20, 20))
+
 # Title
-title_label = ctk.CTkLabel(main_frame, text="Admin Login", font=("Arial", 24, "bold"), text_color="#2563eb")
-title_label.pack(pady=(30, 20))
+title_label = ctk.CTkLabel(form_frame, text="Admin Login", 
+                          font=("Arial", 24, "bold"), 
+                          text_color="#2563eb")
+title_label.pack(pady=(10, 5))
 
 # Instructions
-instructions_label = ctk.CTkLabel(main_frame, text="Please enter your admin credentials", 
-                                font=("Arial", 14), text_color="gray")
+instructions_label = ctk.CTkLabel(form_frame, 
+                                text="Please enter your admin credentials", 
+                                font=("Arial", 14), 
+                                text_color="gray")
 instructions_label.pack(pady=(0, 20))
 
 # Username Entry
-username_label = ctk.CTkLabel(main_frame, text="Username", font=("Arial", 14), text_color="black")
-username_label.pack(anchor="w", padx=50, pady=(10, 0))
+username_label = ctk.CTkLabel(form_frame, text="Username", 
+                             font=("Arial", 14), 
+                             text_color="black")
+username_label.pack(anchor="w")
 
-username_entry = ctk.CTkEntry(main_frame, width=400, height=40, corner_radius=5)
-username_entry.pack(padx=50, pady=5)
+username_entry = ctk.CTkEntry(form_frame, width=400, height=40, corner_radius=5)
+username_entry.pack(fill="x", pady=(5, 15))
 
 # Password Entry
-password_label = ctk.CTkLabel(main_frame, text="Password", font=("Arial", 14), text_color="black")
-password_label.pack(anchor="w", padx=50, pady=(10, 0))
+password_label = ctk.CTkLabel(form_frame, text="Password", 
+                             font=("Arial", 14), 
+                             text_color="black")
+password_label.pack(anchor="w")
 
-password_entry = ctk.CTkEntry(main_frame, width=400, height=40, corner_radius=5, show="*")
-password_entry.pack(padx=50, pady=5)
+password_entry = ctk.CTkEntry(form_frame, width=400, height=40, 
+                             corner_radius=5, show="*")
+password_entry.pack(fill="x", pady=(5, 20))
 
 # Login Button
-login_btn = ctk.CTkButton(main_frame, text="Login", width=400, height=40, 
-                        fg_color="#2563eb", hover_color="#1d4ed8",
-                        font=("Arial", 16, "bold"), command=login_admin)
-login_btn.pack(padx=50, pady=(20, 10))
+login_btn = ctk.CTkButton(form_frame, text="Login", 
+                         width=400, height=40, 
+                         fg_color="#2563eb", hover_color="#1d4ed8",
+                         font=("Arial", 16, "bold"), 
+                         command=login_admin)
+login_btn.pack(fill="x", pady=(5, 10))
 
 # Return to Main Button
-return_btn = ctk.CTkButton(main_frame, text="Return to Main Menu", width=400, height=30, 
-                         fg_color="#64748b", hover_color="#475569",
-                         font=("Arial", 14), command=return_to_main)
-return_btn.pack(padx=50, pady=(5, 10))
+return_btn = ctk.CTkButton(form_frame, text="Return to Main Menu", 
+                          width=400, height=30, 
+                          fg_color="#64748b", hover_color="#475569",
+                          font=("Arial", 14), 
+                          command=return_to_main)
+return_btn.pack(fill="x", pady=(5, 10))
 
 # Center the window on the screen
 root.update_idletasks()

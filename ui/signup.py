@@ -12,10 +12,10 @@ os.environ['TK_LIBRARY'] = r"C:\Users\buvan\AppData\Local\Programs\Python\Python
 # ------------------- Database Connection -------------------
 def connect_db():
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="new_password",
-        database="supermarket_management"
+        host="141.209.241.57",
+            user="kshat1m",
+            password="mypass",  # Your actual database password
+            database="BIS698W1700_GRP2"
     )
 
 # ------------------- Password Hashing -------------------
@@ -157,17 +157,25 @@ right_frame.place(relx=0.5, rely=0, relwidth=0.5, relheight=1)
 image_container = ctk.CTkFrame(right_frame, fg_color="#EBF3FF", corner_radius=5, width=252, height=252)
 image_container.place(relx=0.5, rely=0.5, anchor="center")
 
-# Load and display the shopping cart image
-image_path = "shopping.png"  # Make sure to save the image with this name in the same directory
+# Load and display the shopping cart image with transparency
+image_path = "./images/shopping.png"
 try:
-    img = ctk.CTkImage(light_image=Image.open(image_path), size=(252, 252))
-    image_label = ctk.CTkLabel(image_container, image=img, text="")
+    # Create the CTkImage with transparency support
+    img = ctk.CTkImage(light_image=Image.open(image_path), 
+                       dark_image=Image.open(image_path),
+                       size=(252, 252))
+    
+    # Create a label with transparent background
+    image_label = ctk.CTkLabel(image_container, image=img, text="", bg_color="transparent")
     image_label.pack(fill="both", expand=True)
+    
+
+    
 except Exception as e:
     print(f"Error loading image: {e}")
-    # Fallback to displaying text only if image fails to load
     error_label = ctk.CTkLabel(image_container, text="🛒", font=("Arial", 72), text_color="#2563eb")
     error_label.pack(pady=50)
+
 
 # ---------------- Run Application ----------------
 root.mainloop()
