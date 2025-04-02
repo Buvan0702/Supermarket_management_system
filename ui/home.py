@@ -784,3 +784,15 @@ cart_container.pack(fill="x", pady=(0, 10))
 cart_items = {}
 cart_item_frames = {}
 
+# ---------------- Previous Orders Section ----------------
+orders_section = ctk.CTkFrame(content_frame, fg_color="white")
+orders_section.pack(fill="x", padx=30, pady=10)
+
+orders_label = ctk.CTkLabel(orders_section, text="Previous Orders", 
+                           font=("Arial", 18, "bold"), text_color="black")
+orders_label.pack(anchor="w", pady=(0, 20))
+
+# Orders container
+orders_container = ctk.CTkFrame(orders_section, fg_color="#f3f4f6", corner_radius=15)
+orders_container.pack(fill="x", pady=10)
+
