@@ -12,10 +12,10 @@ os.environ['TK_LIBRARY'] = r"C:\Users\buvan\AppData\Local\Programs\Python\Python
 # ------------------- Database Connection -------------------
 def connect_db():
     return mysql.connector.connect(
-        host="141.209.241.57",
-            user="kshat1m",
-            password="mypass",  # Your actual database password
-            database="BIS698W1700_GRP2"
+        host="localhost",
+            user="root",
+            password="new_password",  # Your actual database password
+            database="supermarket_management"
     )
 
 # ------------------- Password Hashing -------------------
@@ -28,8 +28,9 @@ def register_user():
     last_name = last_name_entry.get()
     email = email_entry.get()
     password = password_entry.get()
+    secret_key = secret_entry.get()
 
-    if not first_name or not last_name or not email or not password:
+    if not first_name or not last_name or not email or not password or not secret_key:
         messagebox.showwarning("Input Error", "All fields are required.")
         return
 
@@ -40,8 +41,8 @@ def register_user():
         cursor = connection.cursor()
         
         cursor.execute(
-            "INSERT INTO Users (first_name, last_name, username, password, role) VALUES (%s, %s, %s, %s, %s)",
-            (first_name, last_name, email, hashed_password, "user")
+            "INSERT INTO Users (first_name, last_name, username, password, role, secret_key) VALUES (%s, %s, %s, %s, %s, %s)",
+            (first_name, last_name, email, hashed_password, "user", secret_key)
         )
         
         connection.commit()
@@ -52,6 +53,7 @@ def register_user():
         last_name_entry.delete(0, ctk.END)
         email_entry.delete(0, ctk.END)
         password_entry.delete(0, ctk.END)
+        secret_entry.delete(0, ctk.END)
         
     except mysql.connector.Error as err:
         messagebox.showerror("Database Error", str(err))
@@ -70,7 +72,7 @@ ctk.set_default_color_theme("blue")
 
 root = ctk.CTk()
 root.title("SuperMarket - Sign Up")
-root.geometry("1000x600")
+root.geometry("1500x1000")
 root.resizable(False, False)
 
 # ---------------- Main Frame ----------------
@@ -128,25 +130,34 @@ email_entry = ctk.CTkEntry(left_frame, font=("Arial", 14), height=40, width=300,
                           border_color="#e5e7eb", border_width=1, corner_radius=5)
 email_entry.place(relx=0.1, rely=0.68)
 
+# Secret Key Label
+secret_key_label = ctk.CTkLabel(left_frame, text="Secret Key", font=("Arial", 14), text_color="gray")
+secret_key_label.place(relx=0.1, rely=0.74)
+
+# Secret Key Entry
+secret_entry = ctk.CTkEntry(left_frame, font=("Arial", 14), height=40, width=300, 
+                          border_color="#e5e7eb", border_width=1, corner_radius=5)
+secret_entry.place(relx=0.1, rely=0.78)
+
 # Password Label
 password_label = ctk.CTkLabel(left_frame, text="Password", font=("Arial", 14), text_color="gray")
-password_label.place(relx=0.1, rely=0.74)
+password_label.place(relx=0.1, rely=0.84)
 
 # Password Entry
 password_entry = ctk.CTkEntry(left_frame, font=("Arial", 14), height=40, width=300, 
                              border_color="#e5e7eb", border_width=1, corner_radius=5, show="*")
-password_entry.place(relx=0.1, rely=0.78)
+password_entry.place(relx=0.1, rely=0.88)
 
 # Sign Up Button
 signup_btn = ctk.CTkButton(left_frame, text="Sign Up", font=("Arial", 14, "bold"), 
                           fg_color="#2563eb", hover_color="#1d4ed8",
                           height=40, width=300, corner_radius=5, command=register_user)
-signup_btn.place(relx=0.1, rely=0.86)
+signup_btn.place(relx=0.1, rely=0.94)
 
 # Already have an account text
 login_label = ctk.CTkLabel(left_frame, text="Already have an account? Login", 
                           font=("Arial", 14), text_color="#2563eb", cursor="hand2")
-login_label.place(relx=0.1, rely=0.92)
+login_label.place(relx=0.1, rely=0.98)
 login_label.bind("<Button-1>", lambda e: open_login())
 
 # ---------------- Right Side (Image) ----------------

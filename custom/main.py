@@ -13,12 +13,12 @@ os.environ['TK_LIBRARY'] = r"C:\Users\buvan\AppData\Local\Programs\Python\Python
 
 # ------------------- Database Configuration -------------------
 DB_CONFIG = {
-    "host": "141.209.241.57",
-    "user": "kshat1m",
-    "password": "mypass",  # Update with your MySQL password
+    "host": "localhost",
+    "user": "root",
+    "password": "new_password",  # Update with your MySQL password
 }
 
-DB_NAME = "BIS698W1700_GRP2"
+DB_NAME = "supermarket_management"
 
 # ------------------- Database Setup Functions -------------------
 def connect_db(database=None):
@@ -67,6 +67,8 @@ def setup_database():
             username VARCHAR(50) UNIQUE NOT NULL,
             password VARCHAR(255) NOT NULL,
             role VARCHAR(20) NOT NULL,
+            secret_key VARCHAR(255),
+            email VARCHAR(100),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
         """)
@@ -207,7 +209,7 @@ def create_default_products():
                 ("Fresh Apples", 2.00, 50, "apple.png"),
                 ("Organic Bananas", 1.50, 30, "banana.png"),
                 ("Fresh Broccoli", 1.80, 25, "broccoli.png"),
-                ("Whole Wheat Bread", 2.50, 20, None),
+                ("Whole Wheat Bread", 2.50, 20, "bread.png"),
                 ("Almond Milk", 3.00, 15, None),
                 ("Eggs", 2.00, 40, None),
                 ("Chicken Breast", 8.00, 10, None),
@@ -358,7 +360,7 @@ class SuperMarketApp:
             print(f"Error opening login window: {e}")
         
         # If we get here, login was not successful or window was closed
-        self.root.deiconify()  # Show main window again
+        # self.root.deiconify()  # Show main window again
     
     def open_signup(self):
         self.root.withdraw()  # Hide main window
@@ -367,7 +369,7 @@ class SuperMarketApp:
         except Exception as e:
             print(f"Error opening signup window: {e}")
         
-        self.root.deiconify()  # Show main window again
+        # self.root.deiconify()  # Show main window again
     
     def open_admin_login(self):
         """Open admin login window instead of directly opening admin panel"""
@@ -377,7 +379,7 @@ class SuperMarketApp:
         except Exception as e:
             print(f"Error opening admin login window: {e}")
         
-        self.root.deiconify()  # Show main window again
+        # self.root.deiconify()  # Show main window again
     
     def open_admin(self, username=None):
         """This is only called after successful admin login"""
@@ -390,7 +392,7 @@ class SuperMarketApp:
         except Exception as e:
             print(f"Error opening admin window: {e}")
         
-        self.root.deiconify()  # Show main window again
+        # self.root.deiconify()  # Show main window again
     
     def open_home(self, username):
         self.root.withdraw()  # Hide main window
@@ -399,7 +401,7 @@ class SuperMarketApp:
         except Exception as e:
             print(f"Error opening home window: {e}")
         
-        self.root.deiconify()  # Show main window again
+        # self.root.deiconify()  # Show main window again
 
 # ------------------- Main Function ----------------
 def main():

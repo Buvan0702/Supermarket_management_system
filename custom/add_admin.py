@@ -15,10 +15,10 @@ def add_new_admin():
     try:
         # Connect to database
         conn = mysql.connector.connect(
-            host="141.209.241.57",
-            user="kshat1m",
-            password="mypass",  # Your actual database password
-            database="BIS698W1700_GRP2"
+            host="localhost",
+            user="root",
+            password="new_password",  # Your actual database password
+            database="supermarket_management"
         )
         
         cursor = conn.cursor()

@@ -1,3 +1,8 @@
+"""
+User Dashboard for the Supermarket Management System
+Main interface for regular users to shop, manage cart, and view orders
+"""
+
 import customtkinter as ctk
 from PIL import Image
 from tkinter import messagebox
@@ -7,7 +12,10 @@ import os
 import datetime
 import sys
 
-
+# Import from parent directory
+sys.path.append('..')
+from config import DB_CONFIG, UI_THEME, UI_COLOR_THEME
+from utils import connect_db, write_login_file, read_login_file, get_active_cart_id, format_currency
 
 # Global variable to store current user info
 current_user = {
@@ -18,38 +26,9 @@ current_user = {
     "role": None
 }
 
-# ------------------- User Persistence Functions -------------------
-def write_login_file(username, role="user"):
-    """Write login info to a temporary file for other scripts to use"""
-    try:
-        with open("current_user.txt", "w") as f:
-            f.write(f"{username}\n{role}")
-        return True
-    except Exception as e:
-        print(f"Error writing login file: {e}")
-        return False
-
-def read_login_file():
-    """Read login info from temporary file"""
-    try:
-        if os.path.exists("current_user.txt"):
-            with open("current_user.txt", "r") as f:
-                lines = f.readlines()
-                if len(lines) >= 2:
-                    return lines[0].strip(), lines[1].strip()
-        return None, None
-    except Exception as e:
-        print(f"Error reading login file: {e}")
-        return None, None
-
-# ------------------- Database Connection -------------------
-def connect_db():
-    return mysql.connector.connect(
-        host="141.209.241.57",
-            user="kshat1m",
-            password="mypass",  # Your actual database password
-            database="BIS698W1700_GRP2"
-    )
+# Global dictionaries to track cart items and their UI elements
+cart_items = {}
+cart_item_frames = {}
 
 # ------------------- User Authentication Functions -------------------
 def get_user_info(username):
@@ -104,7 +83,7 @@ def fetch_products():
         # Format products for display
         products = []
         for product in products_db:
-            price_formatted = f"${float(product['price']):.2f}"
+            price_formatted = format_currency(product['price'])
             products.append({
                 "id": product["product_id"],
                 "name": product["name"],
@@ -124,45 +103,6 @@ def fetch_products():
             connection.close()
 
 # ------------------- Cart Functions -------------------
-def get_active_cart_id():
-    try:
-        connection = connect_db()
-        cursor = connection.cursor(dictionary=True)
-        
-        # Check if user has an active cart
-        cursor.execute(
-            "SELECT cart_id FROM Carts WHERE user_id = %s AND status = 'active'",
-            (current_user["user_id"],)
-        )
-        
-        cart = cursor.fetchone()
-        
-        if cart:
-            return cart["cart_id"]
-        else:
-            # Create a new cart
-            cursor.execute(
-                "INSERT INTO Carts (user_id, created_at, status) VALUES (%s, %s, %s)",
-                (current_user["user_id"], datetime.datetime.now(), "active")
-            )
-            
-            connection.commit()
-            
-            # Get the new cart ID
-            cursor.execute(
-                "SELECT LAST_INSERT_ID() as cart_id"
-            )
-            
-            new_cart = cursor.fetchone()
-            return new_cart["cart_id"]
-    except mysql.connector.Error as err:
-        messagebox.showerror("Database Error", str(err))
-        return None
-    finally:
-        if connection.is_connected():
-            cursor.close()
-            connection.close()
-
 def fetch_user_cart():
     if not current_user["user_id"]:
         return
@@ -209,7 +149,7 @@ def fetch_user_cart():
             
             # Add items to cart
             for item in cart_items_db:
-                price_str = f"${float(item['price']):.2f}"
+                price_str = format_currency(item['price'])
                 cart_items[item["name"]] = {
                     "name": item["name"],
                     "price": price_str,
@@ -247,7 +187,7 @@ def add_to_cart(product_id, product_name, product_price, raw_price):
             cursor = connection.cursor(dictionary=True)
             
             # Get or create active cart
-            cart_id = get_active_cart_id()
+            cart_id = get_active_cart_id(current_user["user_id"])
             
             if not cart_id:
                 messagebox.showerror("Error", "Could not create a cart. Please try again.")
@@ -437,7 +377,7 @@ def proceed_to_checkout():
     
     try:
         # Pass username as command-line argument
-        subprocess.run(["python", "checkout.py", current_user["username"]], check=True)
+        subprocess.run(["python", "custom/checkout.py", current_user["username"]], check=True)
     except Exception as e:
         print(f"Error launching checkout: {e}")
     
@@ -499,7 +439,7 @@ def refresh_previous_orders():
                    font=("Arial", 16), text_color="black").pack(side="left", padx=15, pady=10)
         
         # Price (right-aligned)
-        price_text = f"${float(order['total_amount']):.2f}"
+        price_text = format_currency(order['total_amount'])
         ctk.CTkLabel(order_row, text=price_text, 
                    font=("Arial", 16, "bold"), text_color="black").pack(side="right", padx=15, pady=10)
 
@@ -551,7 +491,7 @@ def navigate_to(destination):
             os.remove("current_user.txt")
         
         app.destroy()
-        subprocess.run(["python", "login.py"])
+        subprocess.run(["python", "../main.py"])
     elif destination == "Home":
         show_home_view()
     elif destination == "Cart":
@@ -563,9 +503,9 @@ def navigate_to(destination):
         
         # Pass username to checkout
         if current_user["username"]:
-            subprocess.run(["python", "checkout.py", current_user["username"]])
+            subprocess.run(["python", "custom/checkout.py", current_user["username"]])
         else:
-            subprocess.run(["python", "checkout.py"])
+            subprocess.run(["python", "custom/checkout.py"])
             
         app.deiconify()  # Show window again when checkout is closed
         fetch_user_cart()  # Refresh cart after checkout
@@ -575,204 +515,207 @@ def view_order_details(order_id):
     write_login_file(current_user["username"], current_user["role"])
     
     app.withdraw()  # Hide current window
-    subprocess.run(["python", "prevord.py", str(order_id), current_user["username"]])
+    subprocess.run(["python", "custom/order_details.py", str(order_id), current_user["username"]])
     app.deiconify()  # Show window again when order details is closed
 
 # ------------------- Initialize Application ----------------
-ctk.set_appearance_mode("light")
-ctk.set_default_color_theme("blue")
-
-app = ctk.CTk()
-app.title("SuperMarket Dashboard")
-app.geometry("1200x700")
-app.resizable(False, False)
-
-# Check for user information
-print("home.py started with arguments:", sys.argv)
-
-# First try to get username from command line
-if len(sys.argv) > 1:
-    username_from_login = sys.argv[1]
-    print(f"Got username from command line: {username_from_login}")
-    user_logged_in = get_user_info(username_from_login)
-else:
-    # If not in command line, try to get from file
-    username_from_file, role_from_file = read_login_file()
-    if username_from_file:
-        print(f"Got username from file: {username_from_file}")
-        user_logged_in = get_user_info(username_from_file)
+def create_dashboard():
+    global app, header_label, items_section, checkout_section, orders_section
+    global cart_container, empty_cart_label, total_label, checkout_btn, orders_container
+    
+    app = ctk.CTk()
+    app.title("SuperMarket Dashboard")
+    app.geometry("1200x700")
+    app.resizable(False, False)
+    
+    # Configure appearance
+    ctk.set_appearance_mode(UI_THEME)
+    ctk.set_default_color_theme(UI_COLOR_THEME)
+    
+    # ---------------- Sidebar (Navigation Menu) ----------------
+    sidebar = ctk.CTkFrame(app, width=200, height=700, corner_radius=0, fg_color="#2563eb")
+    sidebar.pack(side="left", fill="y")
+    sidebar.pack_propagate(False)  # Prevent the frame from shrinking
+    
+    # Sidebar Title
+    title_label = ctk.CTkLabel(sidebar, text="SuperMarket", font=("Arial", 24, "bold"), text_color="white")
+    title_label.pack(pady=(40, 30))
+    
+    # User info in sidebar
+    if current_user["user_id"]:
+        user_info = f"{current_user['first_name']} {current_user['last_name']}"
+        user_label = ctk.CTkLabel(sidebar, text=f"Welcome, {user_info}", 
+                                font=("Arial", 14), text_color="white")
+        user_label.pack(pady=(0, 20))
+    
+    # Sidebar Buttons with more padding and larger font
+    menu_items = ["Home", "Cart", "Previous Orders", "Logout"]
+    
+    for item in menu_items:
+        btn = ctk.CTkButton(sidebar, text=item, fg_color="transparent", 
+                            text_color="white", font=("Arial", 16),
+                            anchor="w", height=40,
+                            corner_radius=0, hover_color="#1d4ed8",
+                            command=lambda i=item: navigate_to(i))
+        btn.pack(fill="x", pady=5, padx=10)
+    
+    # ---------------- Main Content ----------------
+    main_frame = ctk.CTkFrame(app, fg_color="#f3f4f6", corner_radius=0)
+    main_frame.pack(side="right", fill="both", expand=True)
+    
+    content_frame = ctk.CTkFrame(main_frame, fg_color="white", corner_radius=15)
+    content_frame.pack(fill="both", expand=True, padx=20, pady=20)
+    
+    # Header
+    header_label = ctk.CTkLabel(content_frame, text="Welcome to the SuperMarket",
+                               font=("Arial", 24, "bold"), text_color="black")
+    header_label.pack(anchor="w", padx=30, pady=(30, 20))
+    
+    # ---------------- Available Items Section ----------------
+    items_section = ctk.CTkFrame(content_frame, fg_color="white")
+    items_section.pack(fill="x", padx=30, pady=10)
+    
+    items_label = ctk.CTkLabel(items_section, text="Available Items", 
+                              font=("Arial", 18, "bold"), text_color="black")
+    items_label.pack(anchor="w", pady=(0, 20))
+    
+    # Items container
+    items_container = ctk.CTkFrame(items_section, fg_color="#f3f4f6", corner_radius=15)
+    items_container.pack(fill="x", pady=10)
+    
+    # Product cards frame with horizontal layout
+    products_frame = ctk.CTkFrame(items_container, fg_color="#f3f4f6")
+    products_frame.pack(fill="x", padx=20, pady=20)
+    
+    # Fetch products from database
+    products = fetch_products()
+    
+    # If no products found, display message
+    if not products:
+        no_products_label = ctk.CTkLabel(products_frame, text="No products available", 
+                                       font=("Arial", 16), text_color="gray")
+        no_products_label.pack(pady=30)
     else:
-        # No user info available
-        user_logged_in = False
+        # Displaying Items
+        for product in products:
+            # Create a white card with shadow effect
+            item_card = ctk.CTkFrame(products_frame, fg_color="white", corner_radius=10)
+            item_card.pack(side="left", padx=10, pady=10, expand=True, fill="both")
+            
+            # Add some padding inside the card
+            inner_card = ctk.CTkFrame(item_card, fg_color="white", corner_radius=10)
+            inner_card.pack(padx=20, pady=20, fill="both", expand=True)
+            
+            # Try to load image
+            try:
+                if product["image"] and os.path.exists(product["image"]):
+                    img = ctk.CTkImage(light_image=Image.open(product["image"]), size=(150, 150))
+                    img_label = ctk.CTkLabel(inner_card, image=img, text="")
+                    img_label.pack(pady=10)
+                else:
+                    # Use emoji based on product name
+                    emoji = "🍎"  # default
+                    if "apple" in product["name"].lower():
+                        emoji = "🍎"
+                    elif "banana" in product["name"].lower():
+                        emoji = "🍌"
+                    elif "broccoli" in product["name"].lower():
+                        emoji = "🥦"
+                    
+                    ctk.CTkLabel(inner_card, text=emoji, font=("Arial", 72)).pack(pady=10)
+            except Exception as e:
+                print(f"Error loading image for {product['name']}: {e}")
+                ctk.CTkLabel(inner_card, text="🍎", font=("Arial", 72)).pack(pady=10)
+            
+            # Product details
+            ctk.CTkLabel(inner_card, text=product["name"], 
+                       font=("Arial", 16, "bold"), text_color="black").pack(pady=(5, 0))
+            
+            ctk.CTkLabel(inner_card, text=product["price"], 
+                       font=("Arial", 16), text_color="black").pack(pady=(0, 10))
+            
+            # Add to Cart button
+            add_cart_btn = ctk.CTkButton(
+                inner_card, text="Add to Cart", 
+                fg_color="#2563eb", hover_color="#1d4ed8", 
+                font=("Arial", 14), height=35,
+                command=lambda id=product["id"], name=product["name"], 
+                              price=product["price"], raw_price=product["raw_price"]: 
+                       add_to_cart(id, name, price, raw_price)
+            )
+            add_cart_btn.pack(pady=10)
+    
+    # ---------------- Checkout Section ----------------
+    checkout_section = ctk.CTkFrame(content_frame, fg_color="white")
+    checkout_section.pack(fill="x", padx=30, pady=10)
+    
+    checkout_label = ctk.CTkLabel(checkout_section, text="Checkout", 
+                                 font=("Arial", 18, "bold"), text_color="black")
+    checkout_label.pack(anchor="w", pady=(10, 15))
+    
+    # Create a frame to hold cart items
+    cart_container = ctk.CTkFrame(checkout_section, fg_color="#f3f4f6", corner_radius=10)
+    cart_container.pack(fill="x", pady=(0, 10))
+    
+    # Label when cart is empty
+    empty_cart_label = ctk.CTkLabel(cart_container, text="Your cart is empty", 
+                                  font=("Arial", 14), text_color="gray")
+    empty_cart_label.pack(pady=20)
+    
+    # Cart total label
+    total_label = ctk.CTkLabel(checkout_section, text="Total: $0.00", 
+                             font=("Arial", 16, "bold"), text_color="black")
+    total_label.pack(anchor="e", padx=20, pady=(0, 10))
+    
+    # Checkout button
+    checkout_btn = ctk.CTkButton(checkout_section, text="Proceed to Checkout", 
+                                fg_color="#16a34a", hover_color="#15803d", 
+                                font=("Arial", 14), height=35, width=200,
+                                state="disabled", command=proceed_to_checkout)
+    checkout_btn.pack(anchor="w", pady=(0, 10))
+    
+    # ---------------- Previous Orders Section ----------------
+    orders_section = ctk.CTkFrame(content_frame, fg_color="white")
+    orders_section.pack(fill="x", padx=30, pady=(10, 30))
+    
+    orders_label = ctk.CTkLabel(orders_section, text="Previous Orders", 
+                               font=("Arial", 18, "bold"), text_color="black")
+    orders_label.pack(anchor="w", pady=(10, 15))
+    
+    # Orders container
+    orders_container = ctk.CTkFrame(orders_section, fg_color="#f3f4f6", corner_radius=15)
+    orders_container.pack(fill="x", pady=5)
+    
+    # Fetch user's cart and orders on startup
+    fetch_user_cart()
+    refresh_previous_orders()
+    
+    return app
 
-# Check if we have a logged-in user
-if not user_logged_in:
-    messagebox.showerror("Authentication Error", "User not found. Please login again.")
-    app.destroy()
-    subprocess.run(["python", "login.py"])
-    exit()
+def main():
+    # Check if username was passed as command-line argument
+    if len(sys.argv) > 1:
+        username_from_login = sys.argv[1]
+        user_logged_in = get_user_info(username_from_login)
+    else:
+        # If not in command line, try to get from file
+        username_from_file, role_from_file = read_login_file()
+        if username_from_file:
+            print(f"Got username from file: {username_from_file}")
+            user_logged_in = get_user_info(username_from_file)
+        else:
+            # No user info available
+            user_logged_in = False
+    
+    # Check if we have a logged-in user
+    if not user_logged_in:
+        messagebox.showerror("Authentication Error", "User not found. Please login again.")
+        subprocess.run(["python", "../main.py"])
+        return
+    
+    # Create and run the dashboard
+    dashboard = create_dashboard()
+    dashboard.mainloop()
 
-# ---------------- Sidebar (Navigation Menu) ----------------
-sidebar = ctk.CTkFrame(app, width=200, height=700, corner_radius=0, fg_color="#2563eb")
-sidebar.pack(side="left", fill="y")
-sidebar.pack_propagate(False)  # Prevent the frame from shrinking
-
-# Sidebar Title
-title_label = ctk.CTkLabel(sidebar, text="SuperMarket", font=("Arial", 24, "bold"), text_color="white")
-title_label.pack(pady=(40, 30))
-
-# User info in sidebar
-if user_logged_in:
-    user_info = f"{current_user['first_name']} {current_user['last_name']}"
-    user_label = ctk.CTkLabel(sidebar, text=f"Welcome, {user_info}", 
-                            font=("Arial", 14), text_color="white")
-    user_label.pack(pady=(0, 20))
-
-# Sidebar Buttons with more padding and larger font
-menu_items = ["Home", "Cart", "Previous Orders", "Logout"]
-
-for item in menu_items:
-    btn = ctk.CTkButton(sidebar, text=item, fg_color="transparent", 
-                        text_color="white", font=("Arial", 16),
-                        anchor="w", height=40,
-                        corner_radius=0, hover_color="#1d4ed8",
-                        command=lambda i=item: navigate_to(i))
-    btn.pack(fill="x", pady=5, padx=10)
-
-# ---------------- Main Content ----------------
-main_frame = ctk.CTkFrame(app, fg_color="#f3f4f6", corner_radius=0)
-main_frame.pack(side="right", fill="both", expand=True)
-
-content_frame = ctk.CTkFrame(main_frame, fg_color="white", corner_radius=15)
-content_frame.pack(fill="both", expand=True, padx=20, pady=20)
-
-# Header
-header_label = ctk.CTkLabel(content_frame, text="Welcome to the SuperMarket",
-                           font=("Arial", 24, "bold"), text_color="black")
-header_label.pack(anchor="w", padx=30, pady=(30, 20))
-
-# ---------------- Available Items Section ----------------
-items_section = ctk.CTkFrame(content_frame, fg_color="white")
-items_section.pack(fill="x", padx=30, pady=10)
-
-items_label = ctk.CTkLabel(items_section, text="Available Items", 
-                          font=("Arial", 18, "bold"), text_color="black")
-items_label.pack(anchor="w", pady=(0, 20))
-
-# Items container
-items_container = ctk.CTkFrame(items_section, fg_color="#f3f4f6", corner_radius=15)
-items_container.pack(fill="x", pady=10)
-
-# Product cards frame with horizontal layout
-products_frame = ctk.CTkFrame(items_container, fg_color="#f3f4f6")
-products_frame.pack(fill="x", padx=20, pady=20)
-
-# Fetch products from database
-products = fetch_products()
-
-# If no products found, display message
-if not products:
-    no_products_label = ctk.CTkLabel(products_frame, text="No products available", 
-                                   font=("Arial", 16), text_color="gray")
-    no_products_label.pack(pady=30)
-else:
-    # Displaying Items
-    for product in products:
-        # Create a white card with shadow effect
-        item_card = ctk.CTkFrame(products_frame, fg_color="white", corner_radius=10)
-        item_card.pack(side="left", padx=10, pady=10, expand=True, fill="both")
-        
-        # Add some padding inside the card
-        inner_card = ctk.CTkFrame(item_card, fg_color="white", corner_radius=10)
-        inner_card.pack(padx=20, pady=20, fill="both", expand=True)
-        
-        # Try to load image
-        try:
-            if product["image"] and os.path.exists(product["image"]):
-                img = ctk.CTkImage(light_image=Image.open(product["image"]), size=(150, 150))
-                img_label = ctk.CTkLabel(inner_card, image=img, text="")
-                img_label.pack(pady=10)
-            else:
-                # Use emoji based on product name
-                emoji = "🍎"  # default
-                if "apple" in product["name"].lower():
-                    emoji = "🍎"
-                elif "banana" in product["name"].lower():
-                    emoji = "🍌"
-                elif "broccoli" in product["name"].lower():
-                    emoji = "🥦"
-                
-                ctk.CTkLabel(inner_card, text=emoji, font=("Arial", 72)).pack(pady=10)
-        except Exception as e:
-            print(f"Error loading image for {product['name']}: {e}")
-            ctk.CTkLabel(inner_card, text="🍎", font=("Arial", 72)).pack(pady=10)
-        
-        # Product details
-        ctk.CTkLabel(inner_card, text=product["name"], 
-                   font=("Arial", 16, "bold"), text_color="black").pack(pady=(5, 0))
-        
-        ctk.CTkLabel(inner_card, text=product["price"], 
-                   font=("Arial", 16), text_color="black").pack(pady=(0, 10))
-        
-        # Add to Cart button
-        add_cart_btn = ctk.CTkButton(
-            inner_card, text="Add to Cart", 
-            fg_color="#2563eb", hover_color="#1d4ed8", 
-            font=("Arial", 14), height=35,
-            command=lambda id=product["id"], name=product["name"], 
-                          price=product["price"], raw_price=product["raw_price"]: 
-                   add_to_cart(id, name, price, raw_price)
-        )
-        add_cart_btn.pack(pady=10)
-
-# ---------------- Checkout Section ----------------
-checkout_section = ctk.CTkFrame(content_frame, fg_color="white")
-checkout_section.pack(fill="x", padx=30, pady=10)
-
-checkout_label = ctk.CTkLabel(checkout_section, text="Checkout", 
-                             font=("Arial", 18, "bold"), text_color="black")
-checkout_label.pack(anchor="w", pady=(10, 15))
-
-# Create a frame to hold cart items
-cart_container = ctk.CTkFrame(checkout_section, fg_color="#f3f4f6", corner_radius=10)
-cart_container.pack(fill="x", pady=(0, 10))
-
-# Global dictionaries to track cart items and their UI elements
-cart_items = {}
-cart_item_frames = {}
-
-# Label when cart is empty
-empty_cart_label = ctk.CTkLabel(cart_container, text="Your cart is empty", 
-                              font=("Arial", 14), text_color="gray")
-empty_cart_label.pack(pady=20)
-
-# Cart total label
-total_label = ctk.CTkLabel(checkout_section, text="Total: $0.00", 
-                         font=("Arial", 16, "bold"), text_color="black")
-total_label.pack(anchor="e", padx=20, pady=(0, 10))
-
-# Checkout button
-checkout_btn = ctk.CTkButton(checkout_section, text="Proceed to Checkout", 
-                            fg_color="#16a34a", hover_color="#15803d", 
-                            font=("Arial", 14), height=35, width=200,
-                            state="disabled", command=proceed_to_checkout)
-checkout_btn.pack(anchor="w", pady=(0, 10))
-
-# ---------------- Previous Orders Section ----------------
-orders_section = ctk.CTkFrame(content_frame, fg_color="white")
-orders_section.pack(fill="x", padx=30, pady=(10, 30))
-
-orders_label = ctk.CTkLabel(orders_section, text="Previous Orders", 
-                           font=("Arial", 18, "bold"), text_color="black")
-orders_label.pack(anchor="w", pady=(10, 15))
-
-# Orders container
-orders_container = ctk.CTkFrame(orders_section, fg_color="#f3f4f6", corner_radius=15)
-orders_container.pack(fill="x", pady=5)
-
-# Fetch user's cart and orders on startup
-fetch_user_cart()
-refresh_previous_orders()
-
-# ---------------- Run Application ----------------
-app.mainloop()
+if __name__ == "__main__":
+    main()

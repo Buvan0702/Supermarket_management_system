@@ -27,10 +27,10 @@ cart_items = []
 # ------------------- Database Connection -------------------
 def connect_db():
     return mysql.connector.connect(
-        host="141.209.241.57",
-            user="kshat1m",
-            password="mypass",  # Your actual database password
-            database="BIS698W1700_GRP2"
+        host="localhost",
+            user="root",
+            password="new_password",  # Your actual database password
+            database="supermarket_management"
     )
 
 # ------------------- User Authentication Functions -------------------
@@ -61,7 +61,85 @@ def get_user_info(username):
         if connection.is_connected():
             cursor.close()
             connection.close()
-
+# Add this to your checkout.py file to fix the order completion process
+def complete_purchase():
+    if not current_user["user_id"]:
+        messagebox.showwarning("Login Required", "Please login to checkout.")
+        return
+    
+    if not cart_items:
+        messagebox.showinfo("Empty Cart", "Your cart is empty.")
+        return
+    
+    try:
+        connection = connect_db()
+        cursor = connection.cursor()
+        
+        # Get the active cart
+        cart_id = get_active_cart_id()
+        
+        if not cart_id:
+            messagebox.showerror("Error", "Could not find your cart. Please try again.")
+            return
+        
+        # Calculate total amount directly from the database
+        cursor.execute(
+            """
+            SELECT SUM(p.price * ci.quantity) as total
+            FROM CartItems ci
+            JOIN Products p ON ci.product_id = p.product_id
+            WHERE ci.cart_id = %s
+            """,
+            (cart_id,)
+        )
+        result = cursor.fetchone()
+        total_amount = result[0] if result[0] else 0
+        
+        # Update cart status to 'completed'
+        cursor.execute(
+            "UPDATE Carts SET status = 'completed' WHERE cart_id = %s",
+            (cart_id,)
+        )
+        
+        # Create an order - ensure cart_id is properly stored
+        cursor.execute(
+            """
+            INSERT INTO Orders (user_id, cart_id, order_date, total_amount, status) 
+            VALUES (%s, %s, %s, %s, %s)
+            """,
+            (current_user["user_id"], cart_id, datetime.datetime.now(), total_amount, "completed")
+        )
+        
+        # Get the order ID
+        cursor.execute("SELECT LAST_INSERT_ID()")
+        order_id = cursor.fetchone()[0]
+        
+        # Update product inventory (reduce stock)
+        cursor.execute(
+            """
+            UPDATE Products p
+            JOIN CartItems ci ON p.product_id = ci.product_id
+            SET p.stock = p.stock - ci.quantity
+            WHERE ci.cart_id = %s
+            """,
+            (cart_id,)
+        )
+        
+        connection.commit()
+        
+        messagebox.showinfo("Success", f"Your order #{order_id} has been placed successfully!")
+        
+        # Return to home page
+        app.destroy()
+        subprocess.run(["python", "home.py", current_user["username"]])
+        
+    except mysql.connector.Error as err:
+        print(f"Error completing purchase: {err}")
+        messagebox.showerror("Database Error", str(err))
+    finally:
+        if connection.is_connected():
+            cursor.close()
+            connection.close()
 # ------------------- Cart Functions -------------------
 def fetch_active_cart():
     if not current_user["user_id"]:

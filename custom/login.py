@@ -12,10 +12,10 @@ os.environ['TK_LIBRARY'] = r"C:\Users\buvan\AppData\Local\Programs\Python\Python
 # ------------------- Database Connection -------------------
 def connect_db():
     return mysql.connector.connect(
-        host="141.209.241.57",
-        user="kshat1m",
-        password="mypass",  # Your actual database password
-        database="BIS698W1700_GRP2"
+        host="localhost",
+        user="root",
+        password="new_password",  # Your actual database password
+        database="supermarket_management"
     )
 
 # ------------------- Password Hashing -------------------
@@ -77,7 +77,7 @@ ctk.set_default_color_theme("blue")
 
 root = ctk.CTk()
 root.title("SuperMarket - Login")
-root.geometry("1000x600")  
+root.geometry("1500x1000")  
 root.resizable(False, False)
 
 # ---------------- Main Frame ----------------
@@ -149,11 +149,11 @@ signup_link = ctk.CTkLabel(signup_frame, text="Sign Up",
 signup_link.pack(side="left")
 signup_link.bind("<Button-1>", lambda e: open_signup())
 
-# # Forgot Password (commented out but properly aligned)
-# forgot_pwd_label = ctk.CTkLabel(form_container, text="Forgot Password?", 
-#                              font=("Arial", 14), text_color="#2563eb", cursor="hand2")
-# forgot_pwd_label.pack(anchor="w", pady=(5, 0))
-# forgot_pwd_label.bind("<Button-1>", lambda e: open_forgot_password())
+# Forgot Password
+forgot_pwd_label = ctk.CTkLabel(form_container, text="Forgot Password?", 
+                             font=("Arial", 14), text_color="#2563eb", cursor="hand2")
+forgot_pwd_label.pack(anchor="w", pady=(5, 0))
+forgot_pwd_label.bind("<Button-1>", lambda e: open_forgot_password())
 
 # ---------------- Right Side (Image) ----------------
 right_frame = ctk.CTkFrame(main_frame, fg_color="#EBF3FF", corner_radius=0)
@@ -164,7 +164,7 @@ image_container = ctk.CTkFrame(right_frame, fg_color="#EBF3FF", corner_radius=5,
 image_container.place(relx=0.5, rely=0.5, anchor="center")
 
 # Load and display the shopping cart image with transparency
-image_path = "./images/shopping.png"
+image_path = "images/shopping.png"
 try:
     # Create the CTkImage with transparency support
     img = ctk.CTkImage(light_image=Image.open(image_path), 
