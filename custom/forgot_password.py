@@ -8,10 +8,10 @@ from PIL import Image
 # ------------------- Database Connection -------------------
 def connect_db():
     return mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="new_password",
-        database="supermarket_management"
+        host="141.209.241.57",
+        user="kshat1m",
+        password="mypass",
+        database="BIS698W1700_GRP2"
     )
 
 # ------------------- Password Hashing -------------------

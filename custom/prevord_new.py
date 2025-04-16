@@ -461,4 +461,4 @@ details_container.pack(fill="both", expand=True, padx=10, pady=10)
 populate_orders_list()
 
 # ---------------- Run Application ----------------
-app.mainloop()
+app.mainloop() 
